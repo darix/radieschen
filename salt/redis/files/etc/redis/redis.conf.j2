@@ -6,7 +6,7 @@ dir {{ dir }}
 pidfile {{ pidfile }}
 logfile {{ logfile }}
 
-{%- for key, value in pillar.redis.instances[instance_name].items() %}
+{%- for key, value in pillar.redis.instances[instance_name]["config"].items() %}
     {%- if not key in ["dir", "logfile", "pidfile"] %}
         {%- if value is list %}
             {%- for line in value %}

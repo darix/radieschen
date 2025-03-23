@@ -60,15 +60,15 @@ def run():
             default_pidfile = f"/run/redis/{instance_name}.pid"
             default_dir = f"/var/lib/redis/{instance_name}"
 
-            if not("port" in instance_data):
+            if not("port" in instance_data["config"]):
                 raise SaltConfigurationError(f"Must specify 'port' for redis instance {instance_name}")
 
             context = {
                 "instance_name": instance_name,
                 "config_file": default_config_file,
-                "dir": instance_data.get("dir", default_dir),
-                "pidfile": instance_data.get("pidfile", default_pidfile),
-                "logfile": instance_data.get("logfile", default_pidfile),
+                "dir":     instance_data["config"].get("dir",     default_dir),
+                "pidfile": instance_data["config"].get("pidfile", default_pidfile),
+                "logfile": instance_data["config"].get("logfile", default_pidfile),
             }
 
             config[redis_config] = {

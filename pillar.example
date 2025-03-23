@@ -1,8 +1,10 @@
 redis:
   instances:
     discourse:
+      config:
         port: 6379
     forgejo:
+      config:
         port: 6380
         dir: /var/lib/redis/gitea
         bind:
