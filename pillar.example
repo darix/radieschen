@@ -1,0 +1,10 @@
+redis:
+  instances:
+    discourse:
+        port: 6379
+    forgejo:
+        port: 6380
+        dir: /var/lib/redis/gitea
+        bind:
+          - "127.0.0.1"
+          - "-::1"

@@ -1,0 +1,17 @@
+{{ salt['slsutil.banner']() }}
+#
+# LICENSED UNDER AGPL 3.0
+#
+# copy /etc/apparmor.d/redis.d/sentinel.template to
+#      /etc/apparmor.d/redis.d/sentinel.<instancename>
+#
+# The paths have to match /etc/redis/sentinel-<instancename>.conf
+#
+# profile redis-sentinel.template flags=(attach_disconnected) {
+#   include <abstractions/redis>
+#
+#   /{var/,}run/redis/sentinel-template.pid rwlk,
+#   /etc/redis/sentinel-template.conf rw,
+#   /var/lib/redis/ r,
+#   /var/log/redis/sentinel-template.log rw,
+# }

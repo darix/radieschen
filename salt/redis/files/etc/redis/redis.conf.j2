@@ -1,0 +1,19 @@
+{{ salt['slsutil.banner']() }}
+
+include /etc/redis/includes/redis.defaults.conf
+
+dir {{ dir }}
+pidfile {{ pidfile }}
+logfile {{ logfile }}
+
+{%- for key, value in pillar.redis.instances[instance_name].items() %}
+    {%- if not key in ["dir", "logfile", "pidfile"] %}
+        {%- if value is list %}
+            {%- for line in value %}
+{{ key }} {{ line }}
+            {%- endfor  %}
+        {%- else %}
+{{ key }} {{ value }}
+        {%- endif %}
+    {%- endif %}
+{%- endfor %}

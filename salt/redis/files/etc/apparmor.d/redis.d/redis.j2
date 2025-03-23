@@ -1,0 +1,13 @@
+{{ salt['slsutil.banner']() }}
+#
+# LICENSED UNDER AGPL 3.0
+#
+profile redis.{{ instance_name }} flags=(attach_disconnected) {
+    include <abstractions/redis>
+
+    {{ pidfile }}    rwlk,
+    {{ config_file }}   r,
+    {{ dir }}    r,
+    {{ dir }}/** rw,
+    {{ logfile }}    rw,
+}

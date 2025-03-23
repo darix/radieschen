@@ -1,0 +1,13 @@
+{{ salt['slsutil.banner']() }}
+
+include /etc/redis/includes/sentinel.defaults.conf
+
+{%- for key, value in pillar.redis_sentinel[instance_name].items() %}
+    {%- if value is string %}
+{{ key }} {{ value }}
+    {%- else %}
+        {%- for line in value %}
+{{ key }} {{ line }}
+        {%- endfor  %}
+    {%- endif %}
+{%- endfor %}
