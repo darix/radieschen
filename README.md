@@ -9,6 +9,7 @@ file_roots:
   base:
     - {{ salt_base_dir }}/salt
     - {{ formulas_base_dir }}/radieschen/salt
+```
 
 ## License
 
