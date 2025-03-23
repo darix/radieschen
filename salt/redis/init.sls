@@ -28,26 +28,6 @@ def run():
                 }
             )
 
-        config["redis_include_dir"] = {
-            "file.directory": [
-                {"user": "root"},
-                {"group": "redis"},
-                {"mode": "0750"},
-                {"name": "/etc/redis/includes"},
-                {"require": ["redis_packages"]},
-            ]
-        }
-        config["redis_includes"] = {
-            "file.managed": [
-                {"user": "root"},
-                {"group": "redis"},
-                {"mode": "0640"},
-                {"template": "jinja"},
-                {"names": include_files},
-                {"require": ["redis_include_dir"]},
-            ]
-        }
-
         for instance_name, instance_data in redis_pillar["instances"].items():
             redis_config = f"redis_config_{instance_name}"
             redis_apparmor = f"redis_apparmor_{instance_name}"
@@ -80,7 +60,7 @@ def run():
                     {"mode": "0640"},
                     {"template": "jinja"},
                     {"source": "salt://redis/files/etc/redis/redis.conf.j2"},
-                    {"require": ["redis_includes"]},
+                    {"require": ["redis_packages"]},
                     {"context": context},
                 ]
             }
