@@ -53,6 +53,7 @@ def run():
             redis_apparmor = f"redis_apparmor_{instance_name}"
             redis_apparmor_load = f"redis_apparmor_{instance_name}_load"
             redis_datadir = f"redis_datadir_{instance_name}"
+            redis_service = f"redis_services_{instance_name}"
 
             redis_service_deps = [redis_datadir, redis_config]
 
@@ -122,11 +123,15 @@ def run():
                 redis_service_deps.append(redis_apparmor)
                 redis_service_deps.append(redis_apparmor_load)
 
-            config["redis_services"] = {
+            config[redis_service] = {
                 "service.running": [
                     {"name": f"redis@{instance_name}.service"},
                     {"require": redis_service_deps},
                 ]
             }
+
+            for dependency in ["require_in", "require", "on_changes", "on_changes_in"]:
+                if dependency in instance_data:
+                    config[redis_service]["service.running"][dependency] = instance_data["require_in"]
 
     return config

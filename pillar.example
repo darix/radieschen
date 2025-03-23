@@ -4,6 +4,10 @@ redis:
       config:
         port: 6379
     forgejo:
+      require_in:
+        - forgejo_service
+      require:
+        - step_generic_host_cert
       config:
         port: 6380
         dir: /var/lib/redis/gitea
