@@ -40,78 +40,111 @@ def run():
             default_config_file = f"/etc/redis/{instance_name}.conf"
             default_pidfile = f"/run/redis/{instance_name}.pid"
             default_dir = f"/var/lib/redis/{instance_name}"
+            apparmor_profile_path = f"/etc/apparmor.d/redis.d/redis.{instance_name}"
 
-            if not("port" in instance_data["config"]):
-                raise SaltConfigurationError(f"Must specify 'port' for redis instance {instance_name}")
+            instance_is_enabled = instance_data.get("enable", True)
 
-            context = {
-                "instance_name": instance_name,
-                "config_file": default_config_file,
-                "dir":     instance_data["config"].get("dir",     default_dir),
-                "pidfile": instance_data["config"].get("pidfile", default_pidfile),
-                "logfile": instance_data["config"].get("logfile", default_pidfile),
-            }
+            if instance_is_enabled:
+                if not("port" in instance_data["config"]):
+                    raise SaltConfigurationError(f"Must specify 'port' for redis instance {instance_name}")
 
-            config[redis_config] = {
-                "file.managed": [
-                    {"name": default_config_file},
-                    {"user": "root"},
-                    {"group": "redis"},
-                    {"mode": "0640"},
-                    {"template": "jinja"},
-                    {"source": "salt://redis/files/etc/redis/redis.conf.j2"},
-                    {"require": ["redis_packages"]},
-                    {"context": context},
-                ]
-            }
+                context = {
+                    "instance_name": instance_name,
+                    "config_file": default_config_file,
+                    "dir":     instance_data["config"].get("dir",     default_dir),
+                    "pidfile": instance_data["config"].get("pidfile", default_pidfile),
+                    "logfile": instance_data["config"].get("logfile", default_pidfile),
+                }
 
-            config[redis_datadir] = {
-                "file.directory": [
-                    {"user": "redis"},
-                    {"group": "redis"},
-                    {"mode": "0750"},
-                    {"name": context["dir"]},
-                    {"require": ["redis_packages"]},
-                ]
-            }
-
-            if redis_use_apparmor:
-                apparmor_profile_path = f"/etc/apparmor.d/redis.d/redis.{instance_name}"
-
-
-                config[redis_apparmor] = {
+                config[redis_config] = {
                     "file.managed": [
-                        {"name": apparmor_profile_path},
+                        {"name": default_config_file},
                         {"user": "root"},
-                        {"group": "root"},
-                        {"mode": "0644"},
+                        {"group": "redis"},
+                        {"mode": "0640"},
                         {"template": "jinja"},
-                        {"source": "salt://redis/files/etc/apparmor.d/redis.d/redis.j2"},
-                        {"require": [redis_config]},
+                        {"source": "salt://redis/files/etc/redis/redis.conf.j2"},
+                        {"require": ["redis_packages"]},
                         {"context": context},
                     ]
                 }
 
-                config[redis_apparmor_load] = {
-                    "cmd.run": [
-                        {"name": f"/sbin/apparmor_parser -r {apparmor_profile_path}"},
-                        {"onchanges": [redis_apparmor]},
-                        {"require": [redis_apparmor]},
+                config[redis_datadir] = {
+                    "file.directory": [
+                        {"user": "redis"},
+                        {"group": "redis"},
+                        {"mode": "0750"},
+                        {"name": context["dir"]},
+                        {"require": ["redis_packages"]},
                     ]
                 }
 
-                redis_service_deps.append(redis_apparmor)
-                redis_service_deps.append(redis_apparmor_load)
+                if redis_use_apparmor:
 
-            config[redis_service] = {
-                "service.running": [
-                    {"name": f"redis@{instance_name}.service"},
-                    {"require": redis_service_deps},
-                ]
-            }
+                    config[redis_apparmor] = {
+                        "file.managed": [
+                            {"name": apparmor_profile_path},
+                            {"user": "root"},
+                            {"group": "root"},
+                            {"mode": "0644"},
+                            {"template": "jinja"},
+                            {"source": "salt://redis/files/etc/apparmor.d/redis.d/redis.j2"},
+                            {"require": [redis_config]},
+                            {"context": context},
+                        ]
+                    }
 
-            for dependency in ["require_in", "require", "on_changes", "on_changes_in"]:
-                if dependency in instance_data:
-                    config[redis_service]["service.running"][dependency] = instance_data["require_in"]
+                    config[redis_apparmor_load] = {
+                        "cmd.run": [
+                            {"name": f"/sbin/apparmor_parser -r {apparmor_profile_path}"},
+                            {"onchanges": [redis_apparmor]},
+                            {"require": [redis_apparmor]},
+                        ]
+                    }
+
+                    redis_service_deps.append(redis_apparmor)
+                    redis_service_deps.append(redis_apparmor_load)
+
+                config[redis_service] = {
+                    "service.running": [
+                        {"name": f"redis@{instance_name}.service"},
+                        {"enable": True},
+                        {"require": redis_service_deps},
+                    ]
+                }
+
+                for dependency in ["require_in", "require", "on_changes", "on_changes_in"]:
+                    if dependency in instance_data:
+                        config[redis_service]["service.running"][dependency] = instance_data["require_in"]
+            else:
+                config[redis_service] = {
+                    "service.dead": [
+                        {"name": f"redis@{instance_name}.service"},
+                        {"enable": False},
+                    ]
+                }
+
+                if redis_use_apparmor:
+
+                    config[redis_apparmor_load] = {
+                        "cmd.run": [
+                            {"name": f"/sbin/apparmor_parser -R {apparmor_profile_path}"},
+                            {"require_in": [redis_service]},
+                        ]
+                    }
+
+                    config[redis_apparmor] = {
+                        "file.absent": [
+                            {"name": apparmor_profile_path},
+                            {"require": [redis_apparmor_load]},
+                        ]
+                    }
+
+                config[redis_config] = {
+                    "file.absent": [
+                        {"name": default_config_file},
+                        {"require": [redis_service]}
+                    ]
+                }
 
     return config
