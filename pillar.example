@@ -1,5 +1,8 @@
 redis:
   instances:
+    # this will remove an instance with all pieces but the datadir
+    default:
+      enable: False
     discourse:
       config:
         port: 6379
