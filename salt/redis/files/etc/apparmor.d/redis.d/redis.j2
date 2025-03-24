@@ -2,6 +2,9 @@
 #
 # LICENSED UNDER AGPL 3.0
 #
+
+include <tunables/global>
+
 profile redis.{{ instance_name }} flags=(attach_disconnected) {
     include <abstractions/redis>
 
