@@ -1,4 +1,6 @@
 redis:
+  # optional redis|valkey
+  # redis_implementation: redis
   instances:
     # this will remove an instance with all pieces but the datadir
     default:

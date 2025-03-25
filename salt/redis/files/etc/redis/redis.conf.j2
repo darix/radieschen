@@ -1,6 +1,6 @@
 {{ salt['slsutil.banner']() }}
 
-include /etc/redis/includes/redis.defaults.conf
+include /etc/{{ redis_implementation }}/includes/{{ redis_implementation }}.defaults.conf
 
 dir {{ dir }}
 pidfile {{ pidfile }}
