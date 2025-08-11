@@ -38,3 +38,63 @@ redis:
         bind:
           - "127.0.0.1"
           - "-::1"
+    supersecure1:
+      require:
+        - step_generic_user_cert
+        - step_generic_host_cert
+      config:
+        port: 0
+        tls-port: 6488
+        dir: /var/lib/redis/supersecure1/
+        pidfile: /run/redis/supersecure1.pid
+        logfile: /var/log/redis/supersecure1.log
+        # use the CA specific file if possible
+        tls-ca-cert-file: /etc/ssl/ca-bundle.pem
+        tls-cert-file: /etc/step/certs/generic.host.full.pem
+        tls-key-file:  /etc/step/certs/generic.host.full.pem
+        tls-client-cert-file: /etc/step/certs/generic.user.full.pem
+        tls-client-key-file:  /etc/step/certs/generic.user.full.pem
+        tls-auth-clients: 'yes'
+        tls-replication: 'yes'
+        tls-cluster: 'yes'
+        tls-protocols: TLSv1.3
+        masterauth: superduper
+        masteruser: replicator
+        user:
+        - 'replicator on +@admin ~* >superduper'
+        - 'haproxy on -@all +ping >yxorpah'
+        - 'reader on +@read ~* >miau'
+        - 'god    on +@all  ~* >woof'
+        bind:
+          - "-::1"
+    supersecure2:
+      require:
+        - step_generic_user_cert
+        - step_generic_host_cert
+        - redis_services_supersecure1
+      config:
+        port: 0
+        tls-port: 6489
+        dir: /var/lib/redis/supersecure2/
+        pidfile: /run/redis/supersecure2.pid
+        logfile: /var/log/redis/supersecure2.log
+        # use the CA specific file if possible
+        tls-ca-cert-file: /etc/ssl/ca-bundle.pem
+        tls-cert-file: /etc/step/certs/generic.host.full.pem
+        tls-key-file:  /etc/step/certs/generic.host.full.pem
+        tls-client-cert-file: /etc/step/certs/generic.user.full.pem
+        tls-client-key-file:  /etc/step/certs/generic.user.full.pem
+        tls-auth-clients: 'yes'
+        tls-replication: 'yes'
+        tls-cluster: 'yes'
+        tls-protocols: TLSv1.3
+        masterauth: superduper
+        masteruser: replicator
+        replicaof: ::1 6488
+        user:
+        - 'replicator on +@admin ~* >superduper'
+        - 'haproxy on -@all +ping >yxorpah'
+        - 'reader on +@read ~* >miau'
+        - 'god    on +@all  ~* >woof'
+        bind:
+          - "-::1"
