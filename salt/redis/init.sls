@@ -118,17 +118,21 @@ def run():
                     redis_service_deps.append(redis_apparmor)
                     redis_service_deps.append(redis_apparmor_load)
 
+                if "require" in instance_data:
+                    redis_service_deps.extend(instance_data["require"])
+
                 config[redis_service] = {
                     "service.running": [
                         {"name": f"{redis_implementation}@{instance_name}.service"},
                         {"enable": True},
                         {"require": redis_service_deps},
+                        {"watch": [redis_config] },
                     ]
                 }
 
-                for dependency in ["require_in", "require", "on_changes", "on_changes_in"]:
+                for dependency in ["require_in", "on_changes", "on_changes_in"]:
                     if dependency in instance_data:
-                        config[redis_service]["service.running"][dependency] = instance_data["require_in"]
+                        config[redis_service]["service.running"].append({dependency: instance_data[dependency]})
             else:
                 config[redis_service] = {
                     "service.dead": [
