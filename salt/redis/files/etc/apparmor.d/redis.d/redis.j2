@@ -2,15 +2,22 @@
 #
 # LICENSED UNDER AGPL 3.0
 #
-
+# copy /etc/apparmor.d/{{ redis_implementation }}.d/{{ redis_implementation }}.template to
+#      /etc/apparmor.d/{{ redis_implementation }}.d/{{ redis_implementation }}.<instancename>
+#
+# The paths have to match /etc/{{ redis_implementation }}/<instancename>.conf
+#
 include <tunables/global>
 
-profile redis.{{ instance_name }} flags=(attach_disconnected) {
-    include <abstractions/redis>
+profile {{redis_implementation}}.{{ instance_name }} flags=(attach_disconnected) {
+  include <abstractions/{{redis_implementation}}>
 
-    {{ pidfile }}    rwlk,
-    {{ config_file }}   r,
-    {{ dir }}    r,
-    {{ dir }}/** rw,
-    {{ logfile }}    rw,
+  {{ pidfile }}    rwlk,
+  {{ config_file }}   r,
+  {{ dir }}    r,
+  {{ dir }}/** rw,
+  {{ logfile }}    rw,
+  {%- for local_line in  apparmor_local %}
+  {{ local_line }}
+  {%- endfor %}
 }

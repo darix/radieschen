@@ -29,10 +29,10 @@ def run():
         redis_implementation = redis_pillar.get("redis_implementation", "redis")
 
         redis_packages = [redis_implementation]
-        redis_use_apparmor = redis_pillar.get("use_apparmor", False) and redis_implementation == "redis"
+        redis_use_apparmor = redis_pillar.get("use_apparmor", False) # and redis_implementation == "redis"
 
         if redis_use_apparmor:
-            redis_packages.append("redis-apparmor")
+            redis_packages.append(f"{redis_implementation}-apparmor")
 
         config["redis_packages"] = {
             "pkg.installed": [
@@ -52,7 +52,8 @@ def run():
             default_config_file = f"/etc/{redis_implementation}/{instance_name}.conf"
             default_pidfile = f"/run/{redis_implementation}/{instance_name}.pid"
             default_dir = f"/var/lib/{redis_implementation}/{instance_name}"
-            apparmor_profile_path = f"/etc/apparmor.d/redis.d/redis.{instance_name}"
+            default_logfile = f"/var/log/{redis_implementation}/{instance_name}.log"
+            apparmor_profile_path = f"/etc/apparmor.d/{redis_implementation}.d/{redis_implementation}.{instance_name}"
 
             instance_is_enabled = instance_data.get("enable", True)
 
@@ -65,7 +66,8 @@ def run():
                     "config_file": default_config_file,
                     "dir":     instance_data["config"].get("dir",     default_dir),
                     "pidfile": instance_data["config"].get("pidfile", default_pidfile),
-                    "logfile": instance_data["config"].get("logfile", default_pidfile),
+                    "logfile": instance_data["config"].get("logfile", default_logfile),
+                    "apparmor_local": instance_data.get("apparmor_local", []),
                     "redis_implementation": redis_implementation,
                 }
 
