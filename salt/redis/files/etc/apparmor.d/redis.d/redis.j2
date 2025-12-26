@@ -14,7 +14,7 @@ profile {{redis_implementation}}.{{ instance_name }} flags=(attach_disconnected)
 
   {{ pidfile }}    rwlk,
   {{ config_file }}   r,
-  {{ dir }}    r,
+  {{ dir }}/    r,
   {{ dir }}/** rw,
   {{ logfile }}    rw,
   {%- for local_line in  apparmor_local %}
