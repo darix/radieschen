@@ -9,9 +9,7 @@ logfile {{ logfile }}
 {%- for key, value in pillar.redis.instances[instance_name]["config"].items() %}
     {%- if not key in ["dir", "logfile", "pidfile", "user"] %}
         {%- if value is list %}
-            {%- for line in value %}
-{{ key }} {{ line }}
-            {%- endfor  %}
+{{ key }} {{ value|join(" ") }}
         {%- else %}
 {{ key }} {{ value }}
         {%- endif %}
