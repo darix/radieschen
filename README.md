@@ -18,7 +18,7 @@ if you are using our [cfgmgmt-template](https://github.com/darix/cfgmgmt-templat
 ```
 git submodule add https://github.com/darix/radieschen formulas/radieschen
 ln -s /srv/cfgmgmt/formulas/radieschen/config/enable_radieschen.conf /etc/salt/master.d/
-systemctl restart saltmaster
+systemctl restart salt-master.service
 ```
 
 ## License
