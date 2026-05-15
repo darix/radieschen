@@ -108,7 +108,7 @@ redis:
 #
 # example
 #
-{%- from 'helpers/radieschen.sls' import sentinel_default_acls, redis_default_acls, tls_cert_dependencies, redis_default_settings_with_tls, sentinel_auth_config, redis_sentinel_auth_config %}
+{%- from 'helpers/radieschen.sls' import sentinel_default_acls, redis_default_acls, tls_cert_dependencies, redis_default_settings_with_tls, sentinel_auth_config, redis_sentinel_auth_config, sentinel_default_settings_with_tls %}
 
 {%- set default_port=6379 %}
 {%- set default_tls_port=6380 %}
@@ -143,6 +143,7 @@ redis:
       replication_use_tls: True
       sentinel_config:
 {{ redis_sentinel_auth_config(sentinel_key=redis_sentinel_key) }}
+{{ sentinel_default_settings_with_tls(tls_ca_cert=ca_cert) }}
       config:
 {{ redis_default_settings_with_tls(tls_ca_cert=ca_cert, tls_port=default_tls_port, non_tls_port=default_port, tls_client_auth="'optional'") }}
       user:
