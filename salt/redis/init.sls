@@ -20,6 +20,8 @@
 
 from salt.exceptions import SaltConfigurationError
 
+import os.path
+
 def run():
     config = {}
 
@@ -171,12 +173,17 @@ def run():
                             {"require": ["redis_packages"]},
                             {"contents": f"include {sentinel_etc_config_file}"},
                             {'require': [sentinel_etc_config_state]},
-                            # Why is this on changes here?
-                            # every time we change the config in /etc/valkey/ we need to reset this file to make sentinel recalculate the cluster_ips
-                            # otherwise it runs into duplicated master entries
-                            {'onchanges': [sentinel_etc_config_state]},
+
                         ]
                     }
+
+                    # Why is this on changes here?
+                    # every time we change the config in /etc/valkey/ we need to reset this file to make sentinel recalculate the cluster_ips
+                    # otherwise it runs into duplicated master entries
+                    if os.path.exists(sentinel_var_config_file):
+                      config[sentinel_var_config_state]["file.managed"].append({'onchanges': [sentinel_etc_config_state]})
+                    else:
+                      config[sentinel_var_config_state]["file.managed"].append({'creates': sentinel_var_config_file})
 
                     config[sentinel_service_state] = {
                         "service.running": [
