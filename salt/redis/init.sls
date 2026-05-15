@@ -81,6 +81,7 @@ def run():
                     "apparmor_local": instance_data.get("apparmor_local", []),
                     "redis_implementation": redis_implementation,
                     "replicaof": None,
+                    "replica_announce_ip": None,
                 }
 
                 if 'mine_target' in redis_pillar and 'mine_function' in redis_pillar and 'primary_node' in redis_pillar:
@@ -92,9 +93,12 @@ def run():
 
                   cluster_ips = __salt__['mine.get'](redis_pillar['mine_target'], redis_pillar['mine_function'], tgt_type='compound')
                   primary_ip = cluster_ips.get(redis_pillar['primary_node'])[0]
+                  own_ip = cluster_ips.get(current_minion)[0]
 
                   if current_minion != redis_pillar['primary_node']:
                     context['replicaof'] = f"{primary_ip} {replication_port}"
+                    # context['replicaof'] = f"{redis_pillar['primary_node']} {replication_port}"
+                    context['replica_announce_ip'] = own_ip
 
                   if use_sentinel:
                     sentinel_etc_config_state  = f"sentinel_etc_config_{instance_name}"
@@ -114,7 +118,8 @@ def run():
                     sentinel_config.extend(__salt__['pillar.get']('redis:sentinel_global_config', []))
 
                     sentinel_config.append(f"sentinel monitor {instance_name} {primary_ip} {replication_port} {sentinel_quorum}")
-                    # sentinel_config.append(f"sentinel monitor {instance_name} {instance_data['primary_node']} {replication_port} {sentinel_quorum}")
+                    sentinel_config.append(f"sentinel announce-ip {own_ip}")
+                    # sentinel_config.append(f"sentinel monitor {instance_name} {redis_pillar['primary_node']} {replication_port} {sentinel_quorum}")
 
                     sentinel_default_instance_settings = {
                       'down-after-milliseconds': 60000,
