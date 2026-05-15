@@ -39,6 +39,11 @@ redis:
           - "127.0.0.1"
           - "-::1"
     supersecure1:
+      # if true. use tls-port otherwise clustering uses normal port
+      replication_use_tls: True
+      primary_node:  supersecure0.example.com
+      mine_target:   'I@role:supersecure'
+      mine_function: fqdn_ip
       require:
         - step_generic_user_cert
         - step_generic_host_cert
