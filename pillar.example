@@ -103,3 +103,48 @@ redis:
         - 'god    on +@all  ~* >woof'
         bind:
           - "-::1"
+
+
+#
+# example
+#
+{%- from 'helpers/radieschen.sls' import sentinel_default_acls, redis_default_acls, tls_cert_dependencies, redis_default_settings_with_tls, sentinel_auth_config %}
+
+{%- set default_port=6379 %}
+{%- set default_tls_port=6380 %}
+
+{%- set ca_cert="/etc/ssl/ca-bundle.pem" %}
+
+
+{%- set cluster_name = "production-valkey" %}
+{%- set cluster_role = "I@role:" ~ cluster_name %}
+{%- set cluster_address_mine_function = "fqdn_ip" %}
+
+{%- set replication_key    = cluster_name ~ "/replicator"  %}
+{%- set sentinel_key       = cluster_name ~ "/sentinel"    %}
+{%- set redis_sentinel_key = cluster_name ~ "/redis_sentinel"    %}
+{%- set healthcheck_key    = cluster_name ~ "/healthcheck" %}
+{%- set readonly_key       = cluster_name ~ "/readonly"    %}
+
+redis:
+  redis_implementation: valkey
+  use_sentinel: True
+  primary_node:  production0.valkey.example.com
+  mine_target:   {{ cluster_role }}
+  mine_function: {{ cluster_address_mine_function }}
+  sentinel_users:
+{{ sentinel_default_acls(sentinel_key=sentinel_key) }}
+  sentinel_global_config:
+{{ sentinel_auth_config(sentinel_key=sentinel_key) }}
+  instances:
+    default:
+      require:
+{{ tls_cert_dependencies() }}
+      replication_use_tls: True
+      sentinel_config:
+{{ redis_sentinel_auth_config(sentinel_key=redis_sentinel_key) }}
+      config:
+{{ redis_default_settings_with_tls(tls_ca_cert=ca_cert, tls_port=default_tls_port, non_tls_port=default_port, tls_client_auth="'optional'") }}
+      user:
+{{ redis_default_acls(replication_key=replication_key, healthcheck_key=healthcheck_key, sentinel_key=redis_sentinel_key) }}
+      - 'readonly on +@read ~* >{{ readonly_key | gopass(quoted=False) }}'
