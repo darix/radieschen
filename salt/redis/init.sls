@@ -117,6 +117,7 @@ def run():
                       f"pidfile {sentinel_pidfile}",
                       f"logfile {sentinel_logfile}",
                        "sentinel resolve-hostnames yes",
+                       "sentinel announce-hostnames yes",
                       # f"sentinel monitor {instance_name} {primary_ip} {replication_port} {sentinel_quorum}",
                       f"sentinel monitor {instance_name} {redis_pillar['primary_node']} {replication_port} {sentinel_quorum}",
                       f"sentinel announce-ip {current_minion}",
