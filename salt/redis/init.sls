@@ -65,6 +65,10 @@ def run():
             sentinel_pidfile = f"/run/{redis_implementation}/sentinel-{instance_name}.pid"
             sentinel_logfile = f"/var/log/{redis_implementation}/sentinel-{instance_name}.log"
 
+            sentinel_etc_config_state  = f"sentinel_etc_config_{instance_name}"
+            sentinel_var_config_state  = f"sentinel_var_config_{instance_name}"
+            sentinel_service_state     = f"sentinel_service_{instance_name}"
+
             instance_is_enabled = instance_data.get("enable", True)
 
             if instance_is_enabled:
@@ -103,9 +107,6 @@ def run():
                     context['replica_announce_ip'] = current_minion
 
                   if use_sentinel:
-                    sentinel_etc_config_state  = f"sentinel_etc_config_{instance_name}"
-                    sentinel_var_config_state  = f"sentinel_var_config_{instance_name}"
-                    sentinel_service_state     = f"sentinel_service_{instance_name}"
                     sentinel_quorum = instance_data.get('sentinel_quorum', len(cluster_ips)-1)
                     sentinel_port = instance_data.get('sentinel_port', 20000+replication_port)
 
@@ -200,6 +201,34 @@ def run():
                     for dependency in ["require_in", "on_changes", "on_changes_in"]:
                         if dependency in instance_data:
                             config[sentinel_service_state]["service.running"].append({dependency: instance_data[dependency]})
+                  else:
+                    config[sentinel_service_state] = {
+                        "service.dead": [
+                            {"name": f"{redis_implementation}-sentinel@{instance_name}.service"},
+                            {"enable": False},
+                        ]
+                    }
+
+                    config[sentinel_var_config_state] = {
+                      "file.absent": [
+                        {'name': sentinel_var_config_file},
+                        {'require': [sentinel_service_state]},
+                      ]
+                    }
+
+                    config[sentinel_etc_config_state] = {
+                      "file.absent": [
+                        {'name': sentinel_etc_config_file},
+                        {'require': [sentinel_service_state]},
+                      ]
+                    }
+
+                    config[f"sentinel_instance_dir_{instance_name}"] = {
+                      "file.absent": [
+                        {'name': sentinel_instance_dir},
+                        {'require': [sentinel_var_config_state]},
+                      ]
+                    }
 
                 config[redis_config] = {
                     "file.managed": [
