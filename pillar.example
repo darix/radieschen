@@ -108,7 +108,7 @@ redis:
 #
 # example
 #
-{%- from 'helpers/radieschen.sls' import sentinel_default_acls, redis_default_acls, tls_cert_dependencies, redis_default_settings_with_tls, sentinel_auth_config %}
+{%- from 'helpers/radieschen.sls' import sentinel_default_acls, redis_default_acls, tls_cert_dependencies, redis_default_settings_with_tls, sentinel_auth_config, redis_sentinel_auth_config %}
 
 {%- set default_port=6379 %}
 {%- set default_tls_port=6380 %}
