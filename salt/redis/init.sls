@@ -112,7 +112,7 @@ def run():
 
                     sentinel_config = [
                       "# salt managed - dont cry if your changes are lost",
-                      "include /etc/valkey/includes/sentinel.defaults.conf",
+                      "include /etc/{redis_implementation}/includes/sentinel.defaults.conf",
                       f"dir {sentinel_instance_dir}",
                       f"port {sentinel_port}",
                       f"pidfile {sentinel_pidfile}",
